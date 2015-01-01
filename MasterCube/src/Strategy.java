@@ -5,16 +5,17 @@ import java.util.Random;
 public class Strategy implements Serializable{
 	static final long serialVersionUID = 12345L;
 	State board;
-	int size;
+	byte size;
 	float inteligence;
 	MovesTree tree;
 	Node actual_node;
 	float inteligence_step;
 	Random generator;
-	int up_to;
-	int down_from;
+	byte up_to;
+	byte down_from;
+	byte move[];
 	
-	public Strategy(State state, float in, int step){
+	public Strategy(State state, float in, byte step){
 		board = state;
 		size = board.ShowSize();
 		inteligence = in;
@@ -22,14 +23,15 @@ public class Strategy implements Serializable{
 		actual_node = tree.root;
 		inteligence_step = 1/(float)step;
 		generator = new Random();	
+		move = new byte[3];
 	}
 	
-	public void userMove(int[] move){
+	public void userMove(byte[] next){
 		Node child;
 		for(int i=0; i<actual_node.childrenCount(); i++)
 		{
 			child = actual_node.children.get(i);
-			if(Arrays.equals(child.move, move))
+			if(Arrays.equals(child.move, next))
 			{
 				actual_node = child;
 				break;
@@ -37,17 +39,34 @@ public class Strategy implements Serializable{
 		}
 	}
 	
-	public int[] computerRand(){
-		up_to = (int)((float)actual_node.childrenCount()*inteligence);
-		down_from = (int)((float)actual_node.childrenCount()*(inteligence-inteligence_step));
-		return actual_node.children.get(generator.nextInt(up_to-down_from)+down_from).move;
+	public byte[] computerRand(){
+		if(actual_node.deep>2)
+		{
+			up_to = (byte)((float)actual_node.childrenCount()*inteligence);
+			down_from = (byte)((float)actual_node.childrenCount()*(inteligence-inteligence_step));
+			return actual_node.children.get(generator.nextInt(up_to-down_from)+down_from).move;
+		}
+		else
+		{
+			move[0]=(byte) generator.nextInt(size);
+			move[1]=(byte) generator.nextInt(size);
+			move[2]=(byte) generator.nextInt(size);
+			return move;
+		}
 	}
-	public void computerMove(int[] move){
+	
+	public void firstMove(byte[] move)
+	{
+		tree.addNode(move);
+		actual_node = tree.root;
+	}
+	
+	public void computerMove(byte[] next){
 		Node child;
 		for(int i=0; i<actual_node.childrenCount(); i++)
 		{
 			child = actual_node.children.get(i);
-			if(Arrays.equals(child.move, move))
+			if(Node.arraysEquals(child.move, next))
 			{
 				actual_node = child;
 				break;

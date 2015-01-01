@@ -19,17 +19,18 @@ public class Window extends JFrame implements ActionListener{
 	int height;
 	int[][] coordinations;
 	int button_size;
-	int field_count;
+	byte field_count;
 	float difficulty;
-	int player;
-	int computer;
-	int[] next;
+	byte player;
+	byte computer;
+	byte[] next;
 	boolean player_turn;
+	byte x, y, z;
 
 		public Window(String title, Settings my_settings) 
 		{
 			super(title);
-			next = new int[3];
+			next = new byte[3];
 			set = my_settings;
 			file_chooser = new JFileChooser();
 			button_size = 50;
@@ -54,7 +55,7 @@ public class Window extends JFrame implements ActionListener{
 			icons[2] = new ImageIcon(workspace+"images/cross.png");
 			
 			board = new State(field_count);
-			ai = new Strategy(board, difficulty, set.difficultyOptions.length);
+			ai = new Strategy(board, difficulty, (byte)set.difficultyOptions.length);
 			message = new JLabel("", JLabel.CENTER);
 			message.setSize(500,50);
 			message.setFont(new Font("Verdana", Font.BOLD, 23));
@@ -133,10 +134,14 @@ public class Window extends JFrame implements ActionListener{
 			
 		}
 
-		private void makeMove(int who, int[] were)
+		private void makeMove(byte who)
 		{
-			field[were[0]][were[1]][were[2]].setIcon(icons[who]);
-			board.ChangeState(who, were);
+			if(who == player)
+				ai.userMove(next);
+			else
+				ai.computerMove(next);
+			field[next[0]][next[1]][next[2]].setIcon(icons[who]);
+			board.ChangeState(who, next);
 			if(ai.actual_node.win)
 			{
 				if(ai.actual_node.player == player)
@@ -179,20 +184,45 @@ public class Window extends JFrame implements ActionListener{
 			{
 				next = ai.computerRand();
 			}
-			ai.computerMove(next);
-			makeMove(computer, next);
+			makeMove(computer);
+		}
+		
+		private void firstMove(byte who)
+		{
+			ai.firstMove(next);
+			field[next[0]][next[1]][next[2]].setIcon(icons[who]);
+			board.ChangeState(who, next);
+			if(ai.actual_node.deep<2)
+			{
+				if(who == player)
+				{
+					next = ai.computerRand();
+					firstMove(computer);
+				}
+				else
+				{
+					message.setText("YOUR MOVE");
+					message.setVisible(true);
+					player_turn = true;
+				}
+			}
+			else
+				ai.tree.buildTree();
 		}
 		
 		private void startGame()
 		{
 			if(player != 1)
 			{
-				makeComputerMove();
+				next = ai.computerRand();
+				firstMove(computer);
 			}
-			
-			message.setText("YOUR MOVE");
-			message.setVisible(true);
-			player_turn = true;
+			else
+			{
+				message.setText("YOUR MOVE");
+				message.setVisible(true);
+				player_turn = true;
+			}
 		}
 		
 		private void end()
@@ -234,9 +264,9 @@ public class Window extends JFrame implements ActionListener{
 			catch(ClassNotFoundException e1) {
 				System.out.println("Nie znaleziono klasy: "+e1.getMessage());
 			}*/
-			for(int x=0; x<field_count; x++){
-		    	for(int y=0; y<field_count; y++){
-		    		for(int z=0; z<field_count; z++)
+			for(x=0; x<field_count; x++){
+		    	for(y=0; y<field_count; y++){
+		    		for(z=0; z<field_count; z++)
 		    		{
 			    		if(event == field[x][y][z] && player_turn == true)
 			    		{
@@ -244,8 +274,12 @@ public class Window extends JFrame implements ActionListener{
 			    			next[0] = x;
 			    			next[1] = y;
 			    			next[2] = z;
-			    			ai.userMove(next);
-			    			makeMove(player,next);
+			    			if(ai.actual_node.deep<2)
+			    				firstMove(player);
+			    			
+			    			else
+			    				makeMove(player);
+			    			break;
 			    		}
 		    		}
 		    	}

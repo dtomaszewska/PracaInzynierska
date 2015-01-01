@@ -5,7 +5,7 @@ import java.awt.event.*;
 import javax.swing.event.ChangeListener;
 
 public class OptionsWindow{
-  private static int[] response = {1,1,1};//{"4 fields", "Circle", "beginner"};
+  private static byte[] response = {1,1,1};//{"4 fields", "Circle", "beginner"};
   private Settings set;
   public OptionsWindow(Settings my_settings) 
   {
@@ -22,7 +22,7 @@ public class OptionsWindow{
             	if(e.getSource() instanceof JRadioButton){
                     JRadioButton radioButton = (JRadioButton) e.getSource();
                     if(radioButton.isSelected()){
-                    	response[0]=RadioButtonUtils.getNumberOfElement(radioButton.getText(), set.fieldsOptions)+1;
+                    	response[0]=(byte) (RadioButtonUtils.getNumberOfElement(radioButton.getText(), set.fieldsOptions)+1);
                     	System.out.println(response[0]);
                     }
                 }        	
@@ -35,7 +35,7 @@ public class OptionsWindow{
                 	if(e.getSource() instanceof JRadioButton){
                         JRadioButton radioButton = (JRadioButton) e.getSource();
                         if(radioButton.isSelected()){
-                        	response[1]=RadioButtonUtils.getNumberOfElement(radioButton.getText(), set.iconOptions)+1;
+                        	response[1]=(byte) (RadioButtonUtils.getNumberOfElement(radioButton.getText(), set.iconOptions)+1);
                         	System.out.println(response[1]);
                         }
                     }        	
@@ -48,7 +48,7 @@ public class OptionsWindow{
             	if(e.getSource() instanceof JRadioButton){
                     JRadioButton radioButton = (JRadioButton) e.getSource();
                     if(radioButton.isSelected()){
-                    	response[2]=RadioButtonUtils.getNumberOfElement(radioButton.getText(), set.difficultyOptions)+1;
+                    	response[2]=(byte) (RadioButtonUtils.getNumberOfElement(radioButton.getText(), set.difficultyOptions)+1);
                     	System.out.println(response[2]);
                     }
                 }        	

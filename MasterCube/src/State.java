@@ -3,15 +3,15 @@ import java.io.*;
 
 public class State implements Serializable{
 	static final long serialVersionUID = 12345L;
-	private int size;
-	private int BoardState[][][];
+	private byte size;
+	private byte BoardState[][][];
 	
-	public State(int fields){
+	public State(byte fields){
 		size = fields;
-		BoardState = new int[size][size][size];
-		for(int i=0;i<size;i++){
-			for(int j=0;j<size;j++){
-				for(int k=0;k<size;k++){
+		BoardState = new byte[size][size][size];
+		for(byte i=0;i<size;i++){
+			for(byte j=0;j<size;j++){
+				for(byte k=0;k<size;k++){
 					BoardState[i][j][k]=0;
 				}
 			}
@@ -19,30 +19,30 @@ public class State implements Serializable{
 	}
 	
 	public void Clear(){
-		for(int i=0;i<size;i++){
-			for(int j=0;j<size;j++){
-				for(int k=0;k<size;k++){
+		for(byte i=0;i<size;i++){
+			for(byte j=0;j<size;j++){
+				for(byte k=0;k<size;k++){
 					BoardState[i][j][k]=0;
 				}
 			}
 		}
 	}
 	
-	public int[][][] ShowBoard(){
+	public byte[][][] ShowBoard(){
 		return BoardState;
 	}
 	
 	
-	public int ChangeState(int who, int[] move){
+	public byte ChangeState(byte who, byte[] move){
 		BoardState[move[0]][move[1]][move[2]]=who;
 		return BoardState[move[0]][move[1]][move[2]];
 	}
 	
-	public int ShowFieldState(int[] move){
+	public byte ShowFieldState(byte[] move){
 		return BoardState[move[0]][move[1]][move[2]];
 	}
 	
-	public int ShowSize(){
+	public byte ShowSize(){
 		return size;
 	}
 	
