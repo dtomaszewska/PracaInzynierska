@@ -11,8 +11,8 @@ public class Strategy implements Serializable{
 	Node actual_node;
 	float inteligence_step;
 	Random generator;
-	byte up_to;
-	byte down_from;
+	float up_to;
+	float down_from;
 	byte move[];
 	
 	public Strategy(State state, float in, byte step){
@@ -26,7 +26,7 @@ public class Strategy implements Serializable{
 		move = new byte[3];
 	}
 	
-	public void userMove(byte[] next){
+	public void nextMove(byte[] next){
 		Node child;
 		for(int i=0; i<actual_node.childrenCount(); i++)
 		{
@@ -42,9 +42,12 @@ public class Strategy implements Serializable{
 	public byte[] computerRand(){
 		if(actual_node.deep>2)
 		{
-			up_to = (byte)((float)actual_node.childrenCount()*inteligence);
-			down_from = (byte)((float)actual_node.childrenCount()*(inteligence-inteligence_step));
-			return actual_node.children.get(generator.nextInt(up_to-down_from)+down_from).move;
+			up_to = ((float)actual_node.childrenCount()*inteligence);
+			down_from = ((float)actual_node.childrenCount()*(inteligence-inteligence_step));
+			if(actual_node.children.get(generator.nextInt((int)((up_to-down_from)+down_from))) != null)
+				return actual_node.children.get(generator.nextInt((int)((up_to-down_from)+down_from))).move;
+			else 
+				return actual_node.children.get(0).move;
 		}
 		else
 		{
@@ -59,19 +62,6 @@ public class Strategy implements Serializable{
 	{
 		tree.addNode(move);
 		actual_node = tree.root;
-	}
-	
-	public void computerMove(byte[] next){
-		Node child;
-		for(int i=0; i<actual_node.childrenCount(); i++)
-		{
-			child = actual_node.children.get(i);
-			if(Node.arraysEquals(child.move, next))
-			{
-				actual_node = child;
-				break;
-			}
-		}
 	}
 	
 	public void save(File plik) throws IOException {

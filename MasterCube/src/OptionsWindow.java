@@ -28,6 +28,7 @@ public class OptionsWindow{
                 }        	
             }
         }, null, null);
+
     final Container iconContainer = RadioButtonUtils.createRadioButtonGrouping(
             set.iconOptions, "Circle or Cross?", new ActionListener() {
             	public void actionPerformed(ActionEvent e)

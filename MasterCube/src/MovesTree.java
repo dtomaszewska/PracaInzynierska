@@ -1,18 +1,20 @@
 import java.util.Collections;
 import java.util.LinkedList;
-
-import javax.swing.JTree;
-
-public class MovesTree extends JTree{
+public class MovesTree{
 	Node root;
 	Win is_win;
 	byte move[];
+	byte barier;
 	
 	public MovesTree(byte fields)
 	{
 		is_win = new Win(fields);
 		move = new byte[3];
 		root = new Node(fields);
+		if(fields == 4)
+			barier = 3;
+		else 
+			barier = 2;
 	}
 	
 	public void addNode(byte[] new_move)
@@ -20,25 +22,44 @@ public class MovesTree extends JTree{
 		root.addChild(new Node(root, new_move));
 		root = root.children.getLast();
 	}
+	public void newRoot(Node new_root)
+	{
+		root = new_root;
+	}
+	
 	public void buildTree()
 	{
 		build(root);
 	}
+	
+	public void buildTwoLevels()
+	{
+		if(root.childrenCount()>0)
+			for(Node child : root.children){
+				build(child);
+			}
+		else
+			build(root);
+	}
+	
 	private void build(Node actual)
 	{
-		if(actual.deep<actual.size*actual.size*actual.size)
+		if(actual.deep<root.deep+barier)
 		{
 			if(actual.win == false)
 			{
 				// 2 INTEND
 				actual.addAllChild(actual, is_win);
-			}
-			for(Node child : actual.children)
-			{
-				build(child);
+			
+				for(Node child : actual.children)
+				{
+					build(child);
+				}
+				Collections.sort(actual.children);
 			}
 		}
 	}
+
 }
 
 
@@ -84,7 +105,7 @@ class Node implements Comparable<Node>{
 
 	public Node(Node par, byte[] new_move, Win win){
 		parent = par;
-		i = parent.i+1;
+		i = i+1;
 		System.out.println(i);
 		move = new byte[3];
 		System.arraycopy(new_move, 0, move, 0, new_move.length);
@@ -133,6 +154,11 @@ class Node implements Comparable<Node>{
 		return children.size();
 	}
 	
+	public String toString()
+	{
+		return this.deep +" "+ this.player +" "+ this.move.toString();
+	}
+	
 	private void addWin(Node node)
 	{
 		Node parent;
@@ -157,7 +183,7 @@ class Node implements Comparable<Node>{
 		}
 		for(Node child : node.children)
 		{
-			if(arraysEquals(node.move, move))
+			if(arraysEquals(child.move, move))
 			{
 				is = false;
 				break;
@@ -213,15 +239,15 @@ class Win{
 	{
 		byte sum;
 		byte x, y, z;
-		Node node = in_node;
+		Node node = in_node.parent;
 		clear();
-		board[node.move[0]][node.move[1]][node.move[2]] = 1;
-		Node parent = node.parent;
-		while(parent.deep > 1)
+		board[in_node.move[0]][in_node.move[1]][in_node.move[2]] = 1;
+		Node parent;
+		while(node.deep > 1)
 		{
+			parent = node.parent;
 			board[parent.move[0]][parent.move[1]][parent.move[2]] = 1;
 			node = parent.parent;
-			parent = node.parent;
 		}
 		
 		//pion

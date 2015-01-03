@@ -57,7 +57,6 @@ public class Window extends JFrame implements ActionListener{
 			board = new State(field_count);
 			ai = new Strategy(board, difficulty, (byte)set.difficultyOptions.length);
 			message = new JLabel("", JLabel.CENTER);
-			message.setSize(500,50);
 			message.setFont(new Font("Verdana", Font.BOLD, 23));
 			this.add(message);
 		}
@@ -85,10 +84,11 @@ public class Window extends JFrame implements ActionListener{
 			
 			else
 			{			
-				setSize(1000,750);
+				setSize(1050,750);
 				width = 1100;
 				height = 720;
 			}
+			message.setSize(width,50);
 		}
 		
 		private void buildMenu() 
@@ -136,10 +136,8 @@ public class Window extends JFrame implements ActionListener{
 
 		private void makeMove(byte who)
 		{
-			if(who == player)
-				ai.userMove(next);
-			else
-				ai.computerMove(next);
+			ai.nextMove(next);
+
 			field[next[0]][next[1]][next[2]].setIcon(icons[who]);
 			board.ChangeState(who, next);
 			if(ai.actual_node.win)
@@ -160,7 +158,11 @@ public class Window extends JFrame implements ActionListener{
 				if(ai.actual_node.deep < field_count*field_count*field_count)
 				{
 					if(who == player)
+					{
+						ai.tree.newRoot(ai.actual_node);
+						ai.tree.buildTwoLevels();
 						makeComputerMove();
+					}
 					else
 					{
 						message.setText("YOUR TURN");
@@ -179,11 +181,9 @@ public class Window extends JFrame implements ActionListener{
 		
 		private void makeComputerMove()
 		{
-			next = ai.computerRand();
-			while(board.ShowFieldState(next) != 0)
-			{
+			do{
 				next = ai.computerRand();
-			}
+			}while(board.ShowFieldState(next) != 0);
 			makeMove(computer);
 		}
 		
@@ -207,7 +207,12 @@ public class Window extends JFrame implements ActionListener{
 				}
 			}
 			else
+			{
 				ai.tree.buildTree();
+				message.setText("YOUR MOVE");
+				message.setVisible(true);
+				player_turn = true;
+			}
 		}
 		
 		private void startGame()

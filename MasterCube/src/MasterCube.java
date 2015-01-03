@@ -1,11 +1,13 @@
 public class MasterCube {
 	static Settings my_settings = new Settings();
 		public static void main(String[] args) {
-			long i=1, j = 216;
+			long i=1, j = 62, k=64;
+			i=j;
 			while (j>0)
 			{
-				i+=j*(j-1);
 				j--;
+				k+=i*j;
+				i=i*j;
 			}
 			OptionsWindow options = new OptionsWindow(my_settings);
 			options.main(null);
