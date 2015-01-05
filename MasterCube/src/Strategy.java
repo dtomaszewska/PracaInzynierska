@@ -26,12 +26,14 @@ public class Strategy implements Serializable{
 		move = new byte[3];
 	}
 	
+	public void newTree(){
+		tree = new MovesTree(size);
+	}
+	
 	public void nextMove(byte[] next){
-		Node child;
-		for(int i=0; i<actual_node.childrenCount(); i++)
+		for(Node child : actual_node.children)
 		{
-			child = actual_node.children.get(i);
-			if(Arrays.equals(child.move, next))
+			if(Node.arraysEquals(child.move, next))
 			{
 				actual_node = child;
 				break;
@@ -42,6 +44,9 @@ public class Strategy implements Serializable{
 	public byte[] computerRand(){
 		if(actual_node.deep>2)
 		{
+			if(generator.nextFloat() <= inteligence)
+				return goodMove();
+				
 			up_to = ((float)actual_node.childrenCount()*inteligence);
 			down_from = ((float)actual_node.childrenCount()*(inteligence-inteligence_step));
 			if(actual_node.children.get(generator.nextInt((int)((up_to-down_from)+down_from))) != null)
@@ -62,6 +67,38 @@ public class Strategy implements Serializable{
 	{
 		tree.addNode(move);
 		actual_node = tree.root;
+	}
+	
+	public byte[] goodMove(){
+		//jeœli mogê wygraæ w jednym ruchu, wygrywam
+			for(Node move : actual_node.children)
+			{
+				if(move.win)
+					return move.move;
+			}
+		//jeœli muszê siê broniæ, broniê siê
+		{
+			for(Node my_move : actual_node.children)
+			{
+				for(Node player_move : my_move.children)
+				{
+					if(player_move.win)
+						return player_move.move;
+				}
+			}
+		}
+		//maxymalizacja zysków
+		return actual_node.children.getLast().move;
+		
+		//minimalizacja strat
+		/*{
+			Node best_possible_player_move = actual_node.children.getFirst().children.getLast();
+			for(Node my_move : actual_node.children)
+				if(best_possible_player_move.compareTo(my_move.children.getLast())>0)
+					best_possible_player_move = my_move.children.getLast();
+			
+			return best_possible_player_move.parent.move;
+		}*/
 	}
 	
 	public void save(File plik) throws IOException {

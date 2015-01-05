@@ -1,4 +1,6 @@
 import javax.swing.*;
+
+import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.*; // potrzebne do reakcji na przyciski, menu.
 import java.io.*;
@@ -7,7 +9,7 @@ public class Window extends JFrame implements ActionListener{
 
 	private static final long serialVersionUID = 123456L;
 	private JMenuBar menu_bar;
-	private JFileChooser file_chooser;
+	private JMenuItem menu_item_reset;
 	private JButton[][][] field; 
 	private ImageIcon[] icons;
 	private JLabel message;
@@ -32,7 +34,6 @@ public class Window extends JFrame implements ActionListener{
 			super(title);
 			next = new byte[3];
 			set = my_settings;
-			file_chooser = new JFileChooser();
 			button_size = 50;
 			if(set.options[0]==1)
 				field_count = 4;
@@ -47,7 +48,8 @@ public class Window extends JFrame implements ActionListener{
 			
 			player_turn = false;
 			difficulty = (float)set.options[2]/(float)set.difficultyOptions.length;
-			workspace = new String("D:/Workspace/MasterCube/src/");
+			//workspace = new String("D:/Workspace/MasterCube/src/");
+			workspace = new String("");
 			
 			icons = new ImageIcon[3];			
 			icons[0] = new ImageIcon(workspace+"images/empty.png");
@@ -66,10 +68,8 @@ public class Window extends JFrame implements ActionListener{
 			setLayout(null);	// Wylacz automatyczne rozkaladanie kontrolek
 			setWindowSize();			
 			buildMenu();
-			animation anim = new animation();
-			//anim.run();
-			createButtons();
 			setVisible(true);
+			createButtons();
 			startGame();
 		}
 		
@@ -93,10 +93,10 @@ public class Window extends JFrame implements ActionListener{
 		
 		private void buildMenu() 
 		{
-			menu_bar = new JMenuBar();
-			menu_bar.add(MenuBar.createJMenu(set.gameOptions, "GAME", this, null));
-			menu_bar.add(MenuBar.createJMenu(set.fieldsOptions, "FIELDS COUNT", this, null));
-			menu_bar.add(MenuBar.createJMenu(set.difficultyOptions, "DIFFICULTY", this, null));
+			menu_bar = new JMenuBar();		
+			menu_item_reset = new JMenuItem("RESET GAME");
+			menu_item_reset.addActionListener(this);
+			menu_bar.add(menu_item_reset);
 			this.setJMenuBar(menu_bar);
 		}
 			
@@ -126,12 +126,25 @@ public class Window extends JFrame implements ActionListener{
 		    		{
 			    		field[x][y][z] = new JButton(icons[0]);
 						field[x][y][z].addActionListener(this);
-						field[x][y][z].setBounds(coordinations[z][0]+button_size*x,coordinations[z][1]+button_size*y,button_size,button_size);
+						field[x][y][z].setBounds(coordinations[field_count-1][0]+button_size*x,coordinations[field_count-1][1]+button_size*y,button_size,button_size);
+						//field[x][y][z].setBounds(coordinations[z][0]+button_size*x,coordinations[z][1]+button_size*y,button_size,button_size);
 						this.add(field[x][y][z]);	
 		    		}
 		    	}
 			}
-			
+			animation();
+		}
+		
+		private void clearButtons()
+		{
+			for(int x=0; x<field_count; x++){
+		    	for(int y=0; y<field_count; y++){
+		    		for(int z=0; z<field_count; z++)
+		    		{
+			    		field[x][y][z].setIcon(icons[0]);
+		    		}
+		    	}
+			}
 		}
 
 		private void makeMove(byte who)
@@ -146,11 +159,13 @@ public class Window extends JFrame implements ActionListener{
 				{
 					message.setText("YOU WIN!");
 					message.setVisible(true);
+					end();
 				}
 				else
 				{
 					message.setText("YOU LOSE");
 					message.setVisible(true);
+					end();
 				}
 			}
 			else
@@ -165,7 +180,7 @@ public class Window extends JFrame implements ActionListener{
 					}
 					else
 					{
-						message.setText("YOUR TURN");
+						message.setText("YOUR MOVE");
 						message.setVisible(true);
 						player_turn = true;
 					}
@@ -196,7 +211,9 @@ public class Window extends JFrame implements ActionListener{
 			{
 				if(who == player)
 				{
-					next = ai.computerRand();
+					do{
+						next = ai.computerRand();
+					}while(board.ShowFieldState(next) != 0);
 					firstMove(computer);
 				}
 				else
@@ -219,7 +236,7 @@ public class Window extends JFrame implements ActionListener{
 		{
 			if(player != 1)
 			{
-				next = ai.computerRand();
+				makeComputerMove();
 				firstMove(computer);
 			}
 			else
@@ -232,50 +249,192 @@ public class Window extends JFrame implements ActionListener{
 		
 		private void end()
 		{
+			byte sum;
+			byte x, y, z;
 			
+			//pion
+			sum = 0;
+			for(y=0; y<field_count; y++)
+			{
+				if(ai.board.ShowFieldState(ai.actual_node.move[0],y,ai.actual_node.move[2]) == ai.actual_node.player)
+					sum++;
+			}
+			if(sum==field_count)
+				for(y=0; y<field_count; y++)
+				{
+					field[ai.actual_node.move[0]][y][ai.actual_node.move[2]].setBackground(Color.RED);
+				}
+			
+			//poziom
+			sum = 0;
+			for(x=0; x<field_count; x++)
+			{
+				if(ai.board.ShowFieldState(x,ai.actual_node.move[1],ai.actual_node.move[2]) == ai.actual_node.player)
+					sum++;
+			}
+			if(sum==field_count)
+				for(x=0; x<field_count; x++)
+				{
+					field[x][ai.actual_node.move[1]][ai.actual_node.move[2]].setBackground(Color.RED);
+				}
+			//w glab
+			sum = 0;
+			for(z=0; z<field_count; z++)
+			{
+				if(ai.board.ShowFieldState(ai.actual_node.move[0],ai.actual_node.move[1],z) == ai.actual_node.player)
+					sum++;
+			}
+			if(sum==field_count)
+				for(z=0; z<field_count; z++)
+				{
+					field[ai.actual_node.move[0]][ai.actual_node.move[1]][z].setBackground(Color.RED);
+				}
+			
+			//przekatne
+			//xy
+			if(ai.actual_node.move[0]==ai.actual_node.move[1])
+			{
+				sum = 0;
+				for(x=0;x<field_count;x++)
+				{
+					if(ai.board.ShowFieldState(x,x,ai.actual_node.move[2]) == ai.actual_node.player)
+						sum++;
+				}
+				if(sum==field_count)
+					for(x=0;x<field_count;x++)
+					{
+						field[x][x][ai.actual_node.move[2]].setBackground(Color.RED);
+					}
+			}
+			
+			if(ai.actual_node.move[0]+ai.actual_node.move[1] == field_count-1)
+			{
+				sum = 0;
+				for(x=0;x<field_count;x++)
+				{
+					if(ai.board.ShowFieldState(x,(byte)(field_count-x-1),ai.actual_node.move[2]) == ai.actual_node.player)
+						sum++;
+				}
+				if(sum==field_count)
+					for(x=0;x<field_count;x++)
+					{
+						field[x][(byte)(field_count-x-1)][ai.actual_node.move[2]].setBackground(Color.RED);
+					}
+			}
+			
+			//yz
+			if(ai.actual_node.move[1]==ai.actual_node.move[2])
+			{
+				sum = 0;
+				for(y=0;y<field_count;y++)
+				{
+					if(ai.board.ShowFieldState(ai.actual_node.move[0],y,y) == ai.actual_node.player)
+						sum++;
+				}
+				if(sum==field_count)
+					for(y=0;y<field_count;y++)
+					{
+						field[ai.actual_node.move[0]][y][y].setBackground(Color.RED);
+					}
+			}
+			
+			if(ai.actual_node.move[1]+ai.actual_node.move[2] == field_count-1)
+			{
+				sum = 0;
+				for(y=0;y<field_count;y++)
+				{
+					if(ai.board.ShowFieldState(ai.actual_node.move[0],y,(byte)(field_count-y-1)) == ai.actual_node.player)
+						sum++;
+				}
+				if(sum==field_count)
+					for(y=0;y<field_count;y++)
+					{
+						field[ai.actual_node.move[0]][y][(byte)(field_count-y-1)].setBackground(Color.RED);
+					}
+			}
+			
+			//xz
+			if(ai.actual_node.move[0]==ai.actual_node.move[2])
+			{
+				sum = 0;
+				for(z=0;z<field_count;z++)
+				{
+					if(ai.board.ShowFieldState(z, ai.actual_node.move[1],z) == ai.actual_node.player)
+						sum++;
+				}
+				if(sum==field_count)
+					for(z=0;z<field_count;z++)
+					{
+						field[z][ai.actual_node.move[1]][z].setBackground(Color.RED);
+					}
+			}
+			
+			if(ai.actual_node.move[0]+ai.actual_node.move[2] == field_count-1)
+			{
+				sum = 0;
+				for(z=0;z<field_count;z++)
+				{
+					if(ai.board.ShowFieldState(z,ai.actual_node.move[0],(byte)(field_count-z-1)) == ai.actual_node.player)
+						sum++;
+				}
+				if(sum==field_count)
+					for(z=0;z<field_count;z++)
+					{
+						field[z][ai.actual_node.move[0]][(byte)(field_count-z-1)].setBackground(Color.RED);
+					}
+			}
+			
+			//przekatne calej bryly
+			if(ai.actual_node.move[0]==ai.actual_node.move[2] && ai.actual_node.move[1]==ai.actual_node.move[2])
+			{
+				sum = 0;
+				for(x=0;x<field_count;x++)
+				{
+					if(ai.board.ShowFieldState(x,x,x) == ai.actual_node.player)
+						sum++;
+				}
+				if(sum==field_count)
+					for(x=0;x<field_count;x++)
+					{
+						field[x][x][x].setBackground(Color.RED);
+					}
+			}
+			
+			if(ai.actual_node.move[1]==ai.actual_node.move[2] && ai.actual_node.move[0]+ai.actual_node.move[2] == field_count-1)
+			{
+				sum = 0;
+				for(y=0;y<field_count;y++)
+				{
+					if(ai.board.ShowFieldState(y,y,(byte)(field_count-y-1)) == ai.actual_node.player)
+						sum++;
+				}
+				if(sum==field_count)
+					for(y=0;y<field_count;y++)
+					{
+						field[y][y][(byte)(field_count-y-1)].setBackground(Color.RED);
+					}
+			}
 		}
 		
 		public void actionPerformed(ActionEvent e) 
 		{
 			Object event = e.getSource();
-			/*try {
-				if(event == element_menu_zapisz) {
-					chooser.setDialogTitle("Wybierz plik"); // Ustawienie tytu³u okienka
-			        int result = chooser.showDialog(null, "Wybierz"); //Otwarcie okienka. Metoda ta blokuje siê do czasu wybrania pliku lub zamkniêcia okna
-			        if (JFileChooser.APPROVE_OPTION == result){ //Jeœli u¿tytkownik wybra³ plik
-			            System.out.println("Zapisano do pliku: " + chooser.getSelectedFile());
-			        }else {
-			            System.out.println("Nie wybrano pliku");
-			        }
-					mojeikony.zapisz(chooser.getSelectedFile());
-				}
-				if(co_kliknieto == element_menu_wczytaj) {
-					chooser.setDialogTitle("Wybierz plik"); // Ustawienie tytu³u okienka
-			        int result = chooser.showDialog(null, "Wybierz"); //Otwarcie okienka. Metoda ta blokuje siê do czasu wybrania pliku lub zamkniêcia okna
-			        if (JFileChooser.APPROVE_OPTION == result){ //Jeœli u¿tytkownik wybra³ plik
-			            System.out.println("Odczytano z pliku: " + chooser.getSelectedFile());
-			        }else {
-			            System.out.println("Nie wybrano pliku");
-			        }
-					mojeikony=tlo.wczytaj(chooser.getSelectedFile());
-					for(int i=0;i<1600;i++){
-						przycisk[i].setIcon(ikona[mojeikony.odczytaj(i)]);				
-					}
-				}
+			if(event == menu_item_reset) {
+				ai.board.Clear();
+				clearButtons();
+				ai.newTree();
+				ai.actual_node = ai.tree.root;
+				startGame();
 			}
-			catch(IOException e1) {
-				System.out.println("Blad we/wy: "+e1.getMessage());
-			}
-			catch(ClassNotFoundException e1) {
-				System.out.println("Nie znaleziono klasy: "+e1.getMessage());
-			}*/
+
 			for(x=0; x<field_count; x++){
 		    	for(y=0; y<field_count; y++){
 		    		for(z=0; z<field_count; z++)
 		    		{
-			    		if(event == field[x][y][z] && player_turn == true)
+			    		if(event == field[x][y][z] && player_turn == true && ai.board.ShowFieldState(x,y,z) == 0)
 			    		{
 			    			player_turn = false;
+			    			next = new byte[3];
 			    			next[0] = x;
 			    			next[1] = y;
 			    			next[2] = z;
@@ -288,6 +447,39 @@ public class Window extends JFrame implements ActionListener{
 			    		}
 		    		}
 		    	}
+			}
+		}
+		private void animation()
+		{
+			for(byte i = 0; i<field_count; i++)
+			{
+				//ustawienie pierwszej tarczy
+				while(field[0][0][i].getBounds().x > coordinations[i][0])
+				{
+					for(int x=0; x<field_count; x++){
+				    	for(int y=0; y<field_count; y++){
+							field[x][y][i].setLocation(field[x][y][i].getBounds().x-1, field[x][y][i].getBounds().y);
+							try {
+								Thread.sleep(4/field_count);
+							} catch (InterruptedException e) {
+								e.printStackTrace();
+							}
+				    	}
+					}
+				}
+				while(field[0][0][i].getBounds().y > coordinations[i][1])
+				{
+					for(int x=0; x<field_count; x++){
+				    	for(int y=0; y<field_count; y++){
+							field[x][y][i].setLocation(field[x][y][i].getBounds().x, field[x][y][i].getBounds().y-1);
+							try {
+								Thread.sleep(4/field_count);
+							} catch (InterruptedException e) {
+								e.printStackTrace();
+							}
+				    	}
+					}
+				}
 			}
 		}
 }

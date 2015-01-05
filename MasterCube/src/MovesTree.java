@@ -11,10 +11,7 @@ public class MovesTree{
 		is_win = new Win(fields);
 		move = new byte[3];
 		root = new Node(fields);
-		if(fields == 4)
-			barier = 3;
-		else 
-			barier = 2;
+		barier = 2;
 	}
 	
 	public void addNode(byte[] new_move)
@@ -56,6 +53,7 @@ public class MovesTree{
 					build(child);
 				}
 				Collections.sort(actual.children);
+				System.out.println("      "+actual.toString());
 			}
 		}
 	}
@@ -72,6 +70,7 @@ class Node implements Comparable<Node>{
 	byte player;
 	byte deep;
 	byte size;
+	byte biggest_sum;
 	static int i;
 	
 	public Node(byte fields)
@@ -84,6 +83,7 @@ class Node implements Comparable<Node>{
 		deep = 0;
 		size = fields;
 		i=0;
+		biggest_sum=0;
 	}
 	
 	public Node(Node par, byte[] new_move)
@@ -156,7 +156,7 @@ class Node implements Comparable<Node>{
 	
 	public String toString()
 	{
-		return this.deep +" "+ this.player +" "+ this.move.toString();
+		return deep +" "+ player +" "+ move[0] + move[1] + move[2] + " win: "+ win + " sum: " + biggest_sum + " chance: " + win_chance;
 	}
 	
 	private void addWin(Node node)
@@ -192,19 +192,33 @@ class Node implements Comparable<Node>{
 		return is;
 	}
 	public int compareTo(Node node) {
-		int chance = node.win_chance;
 		if(this == null || node == null)
 			return 0;
-		else if (this.win_chance > chance) {
+		else if (this.win && node.win) {
+			return 0;
+		}
+		else if (this.win) {
 			return 1;
-		} else if (this.win_chance == chance) {
-			if(this.win)
-				return 1;
-			else
-				return 0;
-		} else {
+		}
+		else if (node.win) {
 			return -1;
 		}
+		else if (this.biggest_sum > node.biggest_sum) {
+			return 1;
+		} 
+		else if (this.biggest_sum == node.biggest_sum) {
+			if(this.win_chance > node.win_chance)
+				return 1;
+			else if(this.win_chance == node.win_chance)
+				return 0;
+			else
+				return -1;
+		} 
+		else if(this.biggest_sum < node.biggest_sum)
+			return -1;
+
+		else
+			return 0;
 	}
 	
 	public static boolean arraysEquals(byte[] move1, byte[] move2)
@@ -256,9 +270,9 @@ class Win{
 		{
 			if(board[in_node.move[0]][y][in_node.move[2]] == 1)
 				sum++;
-			else
-				break;
 		}
+		if(sum>in_node.biggest_sum)
+			in_node.biggest_sum = sum;
 		if(sum==size)
 			return true;
 		
@@ -268,9 +282,9 @@ class Win{
 		{
 			if(board[x][in_node.move[1]][in_node.move[2]] == 1)
 				sum++;
-			else
-				break;
 		}
+		if(sum>in_node.biggest_sum)
+			in_node.biggest_sum = sum;
 		if(sum==size)
 			return true;
 		
@@ -280,9 +294,9 @@ class Win{
 		{
 			if(board[in_node.move[0]][in_node.move[1]][z] == 1)
 				sum++;
-			else
-				break;
 		}
+		if(sum>in_node.biggest_sum)
+			in_node.biggest_sum = sum;
 		if(sum==size)
 			return true;
 		
@@ -295,9 +309,9 @@ class Win{
 			{
 				if(board[x][x][in_node.move[2]] == 1)
 					sum++;
-				else
-					break;
 			}
+			if(sum>in_node.biggest_sum)
+				in_node.biggest_sum = sum;
 			if(sum==size)
 				return true;
 		}
@@ -309,9 +323,9 @@ class Win{
 			{
 				if(board[x][size-x-1][in_node.move[2]] == 1)
 					sum++;
-				else
-					break;
 			}
+			if(sum>in_node.biggest_sum)
+				in_node.biggest_sum = sum;
 			if(sum==size)
 				return true;
 		}
@@ -324,9 +338,9 @@ class Win{
 			{
 				if(board[in_node.move[0]][y][y] == 1)
 					sum++;
-				else
-					break;
 			}
+			if(sum>in_node.biggest_sum)
+				in_node.biggest_sum = sum;
 			if(sum==size)
 				return true;
 		}
@@ -338,9 +352,9 @@ class Win{
 			{
 				if(board[in_node.move[0]][y][size-y-1] == 1)
 					sum++;
-				else
-					break;
 			}
+			if(sum>in_node.biggest_sum)
+				in_node.biggest_sum = sum;
 			if(sum==size)
 				return true;
 		}
@@ -353,9 +367,9 @@ class Win{
 			{
 				if(board[z][in_node.move[1]][z] == 1)
 					sum++;
-				else
-					break;
 			}
+			if(sum>in_node.biggest_sum)
+				in_node.biggest_sum = sum;
 			if(sum==size)
 				return true;
 		}
@@ -367,9 +381,9 @@ class Win{
 			{
 				if(board[z][in_node.move[0]][size-z-1] == 1)
 					sum++;
-				else
-					break;
 			}
+			if(sum>in_node.biggest_sum)
+				in_node.biggest_sum = sum;
 			if(sum==size)
 				return true;
 		}
@@ -382,9 +396,9 @@ class Win{
 			{
 				if(board[x][x][x] == 1)
 					sum++;
-				else
-					break;
 			}
+			if(sum>in_node.biggest_sum)
+				in_node.biggest_sum = sum;
 			if(sum==size)
 				return true;
 		}
@@ -396,13 +410,12 @@ class Win{
 			{
 				if(board[y][y][size-y-1] == 1)
 					sum++;
-				else
-					break;
 			}
+			if(sum>in_node.biggest_sum)
+				in_node.biggest_sum = sum;
 			if(sum==size)
 				return true;
 		}
-		
 		return false;
 	}
 }

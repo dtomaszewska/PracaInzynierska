@@ -42,6 +42,10 @@ public class State implements Serializable{
 		return BoardState[move[0]][move[1]][move[2]];
 	}
 	
+	public byte ShowFieldState(byte x, byte y, byte z){
+		return BoardState[x][y][z];
+	}
+	
 	public byte ShowSize(){
 		return size;
 	}
